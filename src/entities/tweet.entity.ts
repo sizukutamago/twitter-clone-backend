@@ -2,8 +2,10 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { User } from './user.entity';
 
 @Entity('tweets')
 export class Tweet {
@@ -18,4 +20,10 @@ export class Tweet {
     default: () => 'CURRENT_TIMESTAMP(6)',
   })
   create_at: Date;
+
+  @ManyToOne(() => User, (user) => user.tweets)
+  user: User;
+
+  @Column()
+  userId: string;
 }
