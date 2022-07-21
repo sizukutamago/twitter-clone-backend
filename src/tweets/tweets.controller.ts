@@ -2,6 +2,7 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Get,
   Post,
   UseGuards,
   UseInterceptors,
@@ -18,12 +19,18 @@ import { GetUser } from '../auth/decorator/get-user.decorator';
 export class TweetsController {
   constructor(private tweetsService: TweetsService) {}
 
+  @Get()
+  async getTweets(): Promise<Tweet[]> {
+    return await this.tweetsService.getTweets();
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard)
   async create(
     @Body() createTweetDto: CreateTweetDto,
     @GetUser() user: User,
   ): Promise<Tweet> {
+    console.log(user, createTweetDto);
     return await this.tweetsService.create(createTweetDto, user);
   }
 }

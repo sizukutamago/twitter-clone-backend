@@ -12,6 +12,13 @@ export class TweetsService {
     private tweetsRepository: Repository<Tweet>,
   ) {}
 
+  async getTweets(): Promise<Tweet[]> {
+    return await this.tweetsRepository.find({
+      relations: ['user'],
+      order: { create_at: 'DESC' },
+    });
+  }
+
   async create(createTweetDto: CreateTweetDto, user: User): Promise<Tweet> {
     const tweet = {
       content: createTweetDto.content,
