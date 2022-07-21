@@ -14,23 +14,30 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async createUser(user: CreateUserDto): Promise<User> {
-    const { name, password } = user;
-    const salt = await bcrypt.genSalt();
-    const hashPassword = await bcrypt.hash(password, salt);
+  async createUser(userDto: CreateUserDto): Promise<{ accessToken: string }> {
+    const { name, password } = userDto;
 
-    return await this.usersRepository.save({ name, password: hashPassword });
-  }
-
-  async signIn(credentialDto: CreateUserDto) {
-    const { name, password } = credentialDto;
     const user = await this.usersRepository.findOne({ name });
+    let payload = {};
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      const payload = { id: user.id, name: user.name };
-      const accessToken = this.jwtService.sign(payload);
-      return { accessToken };
+    if (user) {
+      if (!(await bcrypt.compare(password, user.password))) {
+        throw new UnauthorizedException('invalid name or password');
+      }
+      payload = { id: user.id, name: user.name };
+    } else {
+      const salt = await bcrypt.genSalt();
+      const hashPassword = await bcrypt.hash(password, salt);
+
+      const newUser = await this.usersRepository.save({
+        name,
+        password: hashPassword,
+      });
+
+      payload = { id: newUser.id, name: newUser.name };
     }
-    throw new UnauthorizedException('invalid name or password');
+
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+    return { accessToken };
   }
 }
